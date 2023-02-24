@@ -1119,6 +1119,7 @@ define('SPELL_ATTR7_CLIENT_INDICATOR',                 0x80000000); // Client in
 
 
 // (some) Skill ids
+define('TYPE_SKILL',           15);
 define('SKILL_BLACKSMITHING',  164);
 define('SKILL_LEATHERWORKING', 165);
 define('SKILL_ALCHEMY',        171);
