@@ -119,7 +119,7 @@ SqlGen::register(new class extends SetupScript
             LEFT JOIN
                 creature_template_resistance ctr6 ON ct.entry = ctr6.CreatureID AND ctr6.School = 6
             WHERE
-                ct.entry > ?d
+                ct.entry > ?d AND patch=(SELECT max(patch) FROM creature_template ct2 WHERE ct.entry=ct2.entry AND patch <= ?d)
             {
                 AND ct.entry IN (?a)
             }
@@ -156,7 +156,7 @@ SqlGen::register(new class extends SetupScript
                 c.humanoid = IF(cdie.id IS NULL, 0, 1)';
 
         $lastMax = 0;
-        while ($npcs = DB::World()->select($baseQuery, NPC_CU_INSTANCE_BOSS, $lastMax, $ids ?: DBSIMPLE_SKIP, SqlGen::$sqlBatchSize))
+        while ($npcs = DB::World()->select($baseQuery, NPC_CU_INSTANCE_BOSS, $lastMax, PROGRESSION_PATCH, $ids ?: DBSIMPLE_SKIP, SqlGen::$sqlBatchSize))
         {
             $newMax = max(array_column($npcs, 'entry'));
 

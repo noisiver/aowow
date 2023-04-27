@@ -132,7 +132,7 @@ SqlGen::register(new class extends SetupScript
             WHERE
                 q.id > ?d
             {
-                AND q.id IN (?a)
+                AND q.id IN (?a) AND patch=(SELECT max(patch) FROM quest_template q2 WHERE q.ID=q2.entry AND patch <= ?d)
             }
             ORDER BY
                 q.ID ASC
@@ -172,7 +172,7 @@ SqlGen::register(new class extends SetupScript
 
 
         $lastMax = 0;
-        while ($quests = DB::World()->select($baseQuery, $lastMax, $ids ?: DBSIMPLE_SKIP, SqlGen::$sqlBatchSize))
+        while ($quests = DB::World()->select($baseQuery, $lastMax, $ids ?: DBSIMPLE_SKIP, PROGRESSION_PATCH, SqlGen::$sqlBatchSize))
         {
             $newMax = max(array_column($quests, 'ID'));
 

@@ -60,7 +60,7 @@ class ObjectPage extends GenericPage
         $infobox = Lang::getInfoBoxForFlags($this->subject->getField('cuFlags'));
 
         // Event (ignore events, where the object only gets removed)
-        if ($_ = DB::World()->selectCol('SELECT DISTINCT ge.eventEntry FROM game_event ge, game_event_gameobject geg, gameobject g WHERE ge.eventEntry = geg.eventEntry AND g.guid = geg.guid AND g.id = ?d', $this->typeId))
+        if ($_ = DB::World()->selectCol('SELECT DISTINCT ge.eventEntry FROM game_event ge, game_event_gameobject geg, gameobject g WHERE ge.eventEntry = geg.eventEntry AND g.guid = geg.guid AND g.id = ?d AND ?d BETWEEN ge.patch_min AND ge.patch_max', $this->typeId, PROGRESSION_PATCH))
         {
             $this->extendGlobalIds(Type::WORLDEVENT, ...$_);
             $ev = [];
@@ -256,7 +256,7 @@ class ObjectPage extends GenericPage
             if (!$sai->prepare())                           // no smartAI found .. check per guid
             {
                 // at least one of many
-                $guids = DB::World()->selectCol('SELECT guid FROM gameobject WHERE id = ?d LIMIT 1', $this->typeId);
+                $guids = DB::World()->selectCol('SELECT guid FROM gameobject WHERE id = ?d AND ?d BETWEEN patch_min AND patch_max LIMIT 1', $this->typeId, PROGRESSION_PATCH);
                 while ($_ = array_pop($guids))
                 {
                     $sai = new SmartAI(SAI_SRC_TYPE_OBJECT, -$_, ['name' => $this->name, 'title' => ' [small](for GUID: '.$_.')[/small]']);

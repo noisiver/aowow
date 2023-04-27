@@ -631,9 +631,9 @@ class QuestPage extends GenericPage
             // dear god, if you are one of the types who puts queststarter-items in container-items, in conatiner-items, in container-items, in container-GOs .. you should kill yourself by killing yourself!
             // so yeah .. no recursion checking
             $vendors = DB::World()->selectCol('
-                SELECT nv.entry FROM npc_vendor nv WHERE nv.item = ?d UNION
-                SELECT c.id1 FROM game_event_npc_vendor genv JOIN creature c ON c.guid = genv.guid WHERE genv.item = ?d',
-                $itemId, $itemId
+                SELECT nv.entry FROM npc_vendor nv WHERE nv.item = ?d AND ?d BETWEEN patch_min AND patch_max UNION
+                SELECT c.id1 FROM game_event_npc_vendor genv JOIN creature c ON c.guid = genv.guid WHERE genv.item = ?d AND ?d BETWEEN c.patch_min AND c.patch_max',
+                $itemId, PROGRESSION_PATCH, $itemId, PROGRESSION_PATCH
             );
             foreach ($vendors as $v)
                 $mapNPCs[] = [$v, $method, $itemId];

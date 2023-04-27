@@ -79,7 +79,7 @@ SqlGen::register(new class extends SetupScript
             WHERE
                 go.entry > ?d
             {
-                AND go.entry IN (?a)
+                AND go.entry IN (?a) AND patch=(SELECT max(patch) FROM gameobject_template go2 WHERE go.entry=go2.entry AND patch <= ?d)
             }
             GROUP BY
                 go.entry
@@ -105,7 +105,7 @@ SqlGen::register(new class extends SetupScript
             }';
 
         $lastMax = 0;
-        while ($objects = DB::World()->select($baseQuery, $lastMax, $ids ?: DBSIMPLE_SKIP, SqlGen::$sqlBatchSize))
+        while ($objects = DB::World()->select($baseQuery, $lastMax, $ids ?: DBSIMPLE_SKIP, PROGRESSION_PATCH, SqlGen::$sqlBatchSize))
         {
             $newMax = max(array_column($objects, 'entry'));
 

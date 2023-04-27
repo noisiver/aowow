@@ -134,7 +134,7 @@ SqlGen::register(new class extends SetupScript
             WHERE
                 it.entry > ?d
             {
-                AND it.entry IN (?a)
+                AND it.entry IN (?a) AND patch=(SELECT max(patch) FROM item_template it2 WHERE it.entry=it2.entry AND patch <= ?d)
             }
             ORDER BY
                 it.entry ASC
@@ -142,7 +142,7 @@ SqlGen::register(new class extends SetupScript
                ?d';
 
         $lastMax = 0;
-        while ($items = DB::World()->select($baseQuery, $lastMax, $ids ?: DBSIMPLE_SKIP, SqlGen::$sqlBatchSize))
+        while ($items = DB::World()->select($baseQuery, $lastMax, $ids ?: DBSIMPLE_SKIP, PROGRESSION_PATCH, SqlGen::$sqlBatchSize))
         {
             $newMax = max(array_column($items, 'entry'));
 

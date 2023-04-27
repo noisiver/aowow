@@ -1663,4 +1663,6 @@ define('AT_TYPE_OBJECTIVE', 3);
 define('AT_TYPE_SMART',     4);
 define('AT_TYPE_SCRIPT',    5);
 
+define('PROGRESSION_PATCH', 0);
+
 ?>

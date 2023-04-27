@@ -120,7 +120,7 @@ class NpcPage extends GenericPage
         $infobox = Lang::getInfoBoxForFlags($this->subject->getField('cuFlags'));
 
         // Event (ignore events, where the object only gets removed)
-        if ($_ = DB::World()->selectCol('SELECT DISTINCT ge.eventEntry FROM game_event ge, game_event_creature gec, creature c WHERE ge.eventEntry = gec.eventEntry AND c.guid = gec.guid AND c.id1 = ?d', $this->typeId))
+        if ($_ = DB::World()->selectCol('SELECT DISTINCT ge.eventEntry FROM game_event ge, game_event_creature gec, creature c WHERE ge.eventEntry = gec.eventEntry AND c.guid = gec.guid AND c.id1 = ?d AND ?d BETWEEN ge.patch_min AND ge.patch_max', $this->typeId, PROGRESSION_PATCH))
         {
             $this->extendGlobalIds(Type::WORLDEVENT, ...$_);
             $ev = [];
@@ -372,7 +372,7 @@ class NpcPage extends GenericPage
             if (!$sai->prepare())                           // no smartAI found .. check per guid
             {
                 // at least one of many
-                $guids = DB::World()->selectCol('SELECT guid FROM creature WHERE id1 = ?d', $this->typeId);
+                $guids = DB::World()->selectCol('SELECT guid FROM creature WHERE id1 = ?d AND ?d BETWEEN patch_min AND patch_max', $this->typeId, PROGRESSION_PATCH);
                 while ($_ = array_pop($guids))
                 {
                     $sai = new SmartAI(SAI_SRC_TYPE_CREATURE, -$_, ['baseEntry' => $this->typeId, 'name' => $this->subject->getField('name', true), 'title' => ' [small](for GUID: '.$_.')[/small]']);
@@ -550,10 +550,10 @@ class NpcPage extends GenericPage
                           IFNULL(t2.ReqSpell, t1.ReqSpell) AS reqSkillId
                 FROM      npc_trainer t1
                 LEFT JOIN npc_trainer t2 ON t2.ID = IF(t1.SpellID < 0, -t1.SpellID, null)
-                WHERE     t1.ID = ?d
+                WHERE     t1.ID = ?d AND ?d BETWEEN t1.patch_min AND t1.patch_max AND ?d BETWEEN t2.patch_min AND t2.patch_max
             ';
 
-            if ($tSpells = DB::World()->select($teachQuery, $this->typeId))
+            if ($tSpells = DB::World()->select($teachQuery, $this->typeId, PROGRESSION_PATCH, PROGRESSION_PATCH))
             {
                 $teaches = new SpellList(array(['id', array_keys($tSpells)]));
                 if (!$teaches->error)
@@ -621,7 +621,7 @@ class NpcPage extends GenericPage
         }
 
         // tab: sells
-        if ($sells = DB::World()->selectCol('SELECT item FROM npc_vendor nv WHERE entry = ?d UNION SELECT item FROM game_event_npc_vendor genv JOIN creature c ON genv.guid = c.guid WHERE c.id1 = ?d', $this->typeId, $this->typeId))
+        if ($sells = DB::World()->selectCol('SELECT item FROM npc_vendor nv WHERE entry = ?d AND ?d BETWEEN patch_min AND patch_max UNION SELECT item FROM game_event_npc_vendor genv JOIN creature c ON genv.guid = c.guid WHERE c.id1 = ?d AND ?d BETWEEN c.patch_min AND c.patch_max', $this->typeId, PROGRESSION_PATCH, $this->typeId, PROGRESSION_PATCH))
         {
             $soldItems = new ItemList(array(['id', $sells]));
             if (!$soldItems->error)
@@ -714,7 +714,7 @@ class NpcPage extends GenericPage
             foreach ($lootGOs as $idx => $lgo)
                 array_splice($sourceFor, 1, 0, [[LOOT_GAMEOBJECT, $lgo['lootId'], $mapType ? $langref[($mapType == 1 ? -1 : 1) + ($lgo['modeDummy'] ? 1 : 0)] : '$LANG.tab_drops', 'drops-object-'.$idx, [], 'note' => '$$WH.sprintf(LANG.lvnote_npcobjectsource, '.$lgo['id'].', "'.Util::localizedString($lgo, 'name').'")']]);
 
-        $lootGOs = DB::World()->select('select SourceEntry, ConditionValue1, ConditionValue2 from conditions where SourceTypeOrReferenceId = 1 and SourceGroup = ?d and ConditionTypeOrReference = ?d', $this->typeId, CND_SKILL);
+        $lootGOs = DB::World()->select('select SourceEntry, ConditionValue1, ConditionValue2 from conditions where SourceTypeOrReferenceId = 1 and SourceGroup = ?d and ConditionTypeOrReference = ?d AND ?d BETWEEN patch_min AND patch_max', $this->typeId, CND_SKILL, PROGRESSION_PATCH);
 
         $reqQuest = [];
         foreach ($sourceFor as $sf)
@@ -922,10 +922,10 @@ class NpcPage extends GenericPage
     {
         $rows  = DB::World()->select('
             SELECT creature_id AS npc, RewOnKillRepFaction1 AS faction, RewOnKillRepValue1 AS qty, MaxStanding1 AS maxRank, isTeamAward1 AS spillover
-            FROM creature_onkill_reputation WHERE creature_id IN (?a) AND RewOnKillRepFaction1 > 0 UNION
+            FROM creature_onkill_reputation t1 WHERE creature_id IN (?a) AND RewOnKillRepFaction1 > 0 AND patch=(SELECT max(patch) FROM creature_onkill_reputation t2 WHERE t1.creature_id=t2.creature_id AND patch <= ?d) UNION
             SELECT creature_id AS npc, RewOnKillRepFaction2 As faction, RewOnKillRepValue2 AS qty, MaxStanding2 AS maxRank, isTeamAward2 AS spillover
-            FROM creature_onkill_reputation WHERE creature_id IN (?a) AND RewOnKillRepFaction2 > 0',
-            (array)$entries, (array)$entries
+            FROM creature_onkill_reputation t1 WHERE creature_id IN (?a) AND RewOnKillRepFaction2 > 0 AND patch=(SELECT max(patch) FROM creature_onkill_reputation t2 WHERE t1.creature_id=t2.creature_id AND patch <= ?d)',
+            (array)$entries, PROGRESSION_PATCH, (array)$entries, PROGRESSION_PATCH
         );
 
         $factions = new FactionList(array(['id', array_column($rows, 'faction')]));
