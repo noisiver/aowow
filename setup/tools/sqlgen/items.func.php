@@ -132,9 +132,9 @@ SqlGen::register(new class extends SetupScript
             LEFT JOIN
                 game_event ge ON ge.holiday = it.HolidayId AND it.HolidayId > 0
             WHERE
-                it.entry > ?d
+                it.entry > ?d AND patch=(SELECT max(patch) FROM item_template it2 WHERE it.entry=it2.entry AND patch <= ?d)
             {
-                AND it.entry IN (?a) AND patch=(SELECT max(patch) FROM item_template it2 WHERE it.entry=it2.entry AND patch <= ?d)
+                AND it.entry IN (?a)
             }
             ORDER BY
                 it.entry ASC
@@ -142,7 +142,7 @@ SqlGen::register(new class extends SetupScript
                ?d';
 
         $lastMax = 0;
-        while ($items = DB::World()->select($baseQuery, $lastMax, $ids ?: DBSIMPLE_SKIP, PROGRESSION_PATCH, SqlGen::$sqlBatchSize))
+        while ($items = DB::World()->select($baseQuery, $lastMax, PROGRESSION_PATCH, $ids ?: DBSIMPLE_SKIP, SqlGen::$sqlBatchSize))
         {
             $newMax = max(array_column($items, 'entry'));
 
