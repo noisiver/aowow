@@ -132,7 +132,7 @@ SqlGen::register(new class extends SetupScript
             WHERE
                 q.id > ?d
             {
-                AND q.id IN (?a) AND patch=(SELECT max(patch) FROM quest_template q2 WHERE q.ID=q2.entry AND patch <= ?d)
+                AND q.id IN (?a) AND q.patch=(SELECT max(patch) FROM quest_template q2 WHERE q.ID=q2.ID AND patch <= ?d)
             }
             ORDER BY
                 q.ID ASC
