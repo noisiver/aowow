@@ -130,9 +130,9 @@ SqlGen::register(new class extends SetupScript
             LEFT JOIN
                 disables d ON d.entry = q.ID AND d.sourceType = 1
             WHERE
-                q.id > ?d
+                q.id > ?d AND q.patch=(SELECT max(patch) FROM quest_template q2 WHERE q.ID=q2.ID AND patch <= ?d)
             {
-                AND q.id IN (?a) AND q.patch=(SELECT max(patch) FROM quest_template q2 WHERE q.ID=q2.ID AND patch <= ?d)
+                AND q.id IN (?a)
             }
             ORDER BY
                 q.ID ASC
@@ -172,7 +172,7 @@ SqlGen::register(new class extends SetupScript
 
 
         $lastMax = 0;
-        while ($quests = DB::World()->select($baseQuery, $lastMax, $ids ?: DBSIMPLE_SKIP, PROGRESSION_PATCH, SqlGen::$sqlBatchSize))
+        while ($quests = DB::World()->select($baseQuery, $lastMax, PROGRESSION_PATCH, $ids ?: DBSIMPLE_SKIP, SqlGen::$sqlBatchSize))
         {
             $newMax = max(array_column($quests, 'ID'));
 
