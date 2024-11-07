@@ -79,7 +79,7 @@ SqlGen::register(new class extends SetupScript
             WHERE
                 go.entry > ?d
             {
-                AND go.entry IN (?a) AND patch=(SELECT max(patch) FROM gameobject_template go2 WHERE go.entry=go2.entry AND patch <= ?d)
+                AND go.entry IN (?a) AND Patch=(SELECT max(Patch) FROM gameobject_template go2 WHERE go.entry=go2.entry AND Patch <= ?d)
             }
             GROUP BY
                 go.entry

@@ -127,7 +127,7 @@ SqlGen::register(new class extends SetupScript
             LEFT JOIN
                 creature_template_model ctm4 ON ct.entry = ctm4.CreatureID AND ctm4.Idx = 3
             WHERE
-                ct.entry > ?d AND patch=(SELECT max(patch) FROM creature_template ct2 WHERE ct.entry=ct2.entry AND patch <= ?d)
+                ct.entry > ?d AND Patch=(SELECT max(Patch) FROM creature_template ct2 WHERE ct.entry=ct2.entry AND Patch <= ?d)
             {
                 AND ct.entry IN (?a)
             }

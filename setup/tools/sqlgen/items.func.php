@@ -132,7 +132,7 @@ SqlGen::register(new class extends SetupScript
             LEFT JOIN
                 game_event ge ON ge.holiday = it.HolidayId AND it.HolidayId > 0
             WHERE
-                it.entry > ?d AND patch=(SELECT max(patch) FROM item_template it2 WHERE it.entry=it2.entry AND patch <= ?d)
+                it.entry > ?d AND Patch=(SELECT max(Patch) FROM item_template it2 WHERE it.entry=it2.entry AND Patch <= ?d)
             {
                 AND it.entry IN (?a)
             }

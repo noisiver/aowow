@@ -16,16 +16,16 @@ SqlGen::register(new class extends SetupScript
     public function generate(array $ids = []) : bool
     {
         $query['creature'] = '
-            SELECT 1 AS type, id AS typeId, quest AS questId, 1 AS method, 0          AS eventId FROM creature_queststarter WHERE ?d BETWEEN patch_min AND patch_max UNION
-            SELECT 1 AS type, id AS typeId, quest AS questId, 2 AS method, 0          AS eventId FROM creature_questender WHERE ?d BETWEEN patch_min AND patch_max   UNION
+            SELECT 1 AS type, id AS typeId, quest AS questId, 1 AS method, 0          AS eventId FROM creature_queststarter WHERE ?d BETWEEN MinPatch AND MaxPatch UNION
+            SELECT 1 AS type, id AS typeId, quest AS questId, 2 AS method, 0          AS eventId FROM creature_questender WHERE ?d BETWEEN MinPatch AND MaxPatch   UNION
             SELECT 1 AS type, id AS typeId, quest AS questId, 1 AS method, eventEntry AS eventId FROM game_event_creature_quest';
 
         $query['object'] = '
-            SELECT 2 AS type, id AS typeId, quest AS questId, 1 AS method, 0          AS eventId FROM gameobject_queststarter WHERE ?d BETWEEN patch_min AND patch_max UNION
-            SELECT 2 AS type, id AS typeId, quest AS questId, 2 AS method, 0          AS eventId FROM gameobject_questender WHERE ?d BETWEEN patch_min AND patch_max   UNION
+            SELECT 2 AS type, id AS typeId, quest AS questId, 1 AS method, 0          AS eventId FROM gameobject_queststarter WHERE ?d BETWEEN MinPatch AND MaxPatch UNION
+            SELECT 2 AS type, id AS typeId, quest AS questId, 2 AS method, 0          AS eventId FROM gameobject_questender WHERE ?d BETWEEN MinPatch AND MaxPatch   UNION
             SELECT 2 AS type, id AS typeId, quest AS questId, 1 AS method, eventEntry AS eventId FROM game_event_gameobject_quest';
 
-        $query['item'] = 'SELECT 3 AS type, entry AS typeId, startquest AS questId, 1 AS method, 0 AS eventId FROM item_template t1 WHERE startquest <> 0 AND patch=(SELECT max(patch) FROM item_template t2 WHERE t1.entry=t2.entry AND patch <= ?d)';
+        $query['item'] = 'SELECT 3 AS type, entry AS typeId, startquest AS questId, 1 AS method, 0 AS eventId FROM item_template t1 WHERE startquest <> 0 AND Patch=(SELECT max(Patch) FROM item_template t2 WHERE t1.entry=t2.entry AND Patch <= ?d)';
 
         // always rebuild this table from scratch
         // or how would i know what to fetch specifically

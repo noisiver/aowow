@@ -130,7 +130,7 @@ SqlGen::register(new class extends SetupScript
             LEFT JOIN
                 disables d ON d.entry = q.ID AND d.sourceType = 1
             WHERE
-                q.id > ?d AND q.patch=(SELECT max(patch) FROM quest_template q2 WHERE q.ID=q2.ID AND patch <= ?d)
+                q.id > ?d AND q.Patch=(SELECT max(Patch) FROM quest_template q2 WHERE q.ID=q2.ID AND Patch <= ?d)
             {
                 AND q.id IN (?a)
             }

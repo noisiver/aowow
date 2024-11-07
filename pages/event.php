@@ -107,7 +107,7 @@ class EventPage extends GenericPage
         $hasFilter = in_array($this->hId, [372, 283, 285, 353, 420, 400, 284, 201, 374, 409, 141, 324, 321, 424, 335, 327, 341, 181, 404, 398, 301]);
 
         // tab: npcs
-        if ($npcIds = DB::World()->selectCol('SELECT id1 AS ARRAY_KEY, IF(ec.eventEntry > 0, 1, 0) AS added FROM creature c, game_event_creature ec WHERE ec.guid = c.guid AND ABS(ec.eventEntry) = ?d AND ?d BETWEEN c.patch_min AND c.patch_max AND ?d BETWEEN ec.patch_min AND ec.patch_max', $this->eId, PROGRESSION_PATCH, PROGRESSION_PATCH))
+        if ($npcIds = DB::World()->selectCol('SELECT id1 AS ARRAY_KEY, IF(ec.eventEntry > 0, 1, 0) AS added FROM creature c, game_event_creature ec WHERE ec.guid = c.guid AND ABS(ec.eventEntry) = ?d', $this->eId))
         {
             $creatures = new CreatureList(array(['id', array_keys($npcIds)]));
             if (!$creatures->error)
@@ -126,7 +126,7 @@ class EventPage extends GenericPage
         }
 
         // tab: objects
-        if ($objectIds = DB::World()->selectCol('SELECT id AS ARRAY_KEY, IF(eg.eventEntry > 0, 1, 0) AS added FROM gameobject g, game_event_gameobject eg WHERE eg.guid = g.guid AND ABS(eg.eventEntry) = ?d AND ?d BETWEEN g.patch_min AND g.patch_max AND ?d BETWEEN eg.patch_min AND eg.patch_max', $this->eId, PROGRESSION_PATCH, PROGRESSION_PATCH))
+        if ($objectIds = DB::World()->selectCol('SELECT id AS ARRAY_KEY, IF(eg.eventEntry > 0, 1, 0) AS added FROM gameobject g, game_event_gameobject eg WHERE eg.guid = g.guid AND ABS(eg.eventEntry) = ?d', $this->eId))
         {
             $objects = new GameObjectList(array(['id', array_keys($objectIds)]));
             if (!$objects->error)
@@ -203,7 +203,7 @@ class EventPage extends GenericPage
         {
             // vendor
             $cIds = $creatures->getFoundIDs();
-            if ($sells = DB::World()->selectCol('SELECT item FROM npc_vendor nv WHERE entry IN (?a) AND ?d BETWEEN patch_min AND patch_max UNION SELECT item FROM game_event_npc_vendor genv JOIN creature c ON genv.guid = c.guid AND c.id1 IN (?a) AND ?d BETWEEN c.patch_min AND c.patch_max', $cIds, PROGRESSION_PATCH, $cIds, PROGRESSION_PATCH))
+            if ($sells = DB::World()->selectCol('SELECT item FROM npc_vendor nv WHERE entry IN (?a) UNION SELECT item FROM game_event_npc_vendor genv JOIN creature c ON genv.guid = c.guid AND c.id1 IN (?a)', $cIds, $cIds))
                 $itemCnd[] = ['id', $sells];
         }
 
