@@ -18,11 +18,11 @@ SqlGen::register(new class extends SetupScript
 
     private $querys = array(
         1 => ['SELECT c.guid, 1 AS "type", c.id1 AS typeId, c.spawntimesecs AS respawn, c.phaseMask, c.zoneId AS areaId, c.map, IFNULL(ca.path_id, 0) AS pathId, c.position_y AS `posX`, c.position_x AS `posY` ' .
-              'FROM creature c LEFT JOIN creature_addon ca ON ca.guid = c.guid',
+              'FROM creature c LEFT JOIN creature_addon ca ON ca.guid = c.guid WHERE c.phaseMask != 16384',
               ' - assembling creature spawns', Type::NPC],
 
         2 => ['SELECT c.guid, 2 AS "type", c.id AS typeId, ABS(c.spawntimesecs) AS respawn, c.phaseMask, c.zoneId AS areaId, c.map, 0 as pathId, c.position_y AS `posX`, c.position_x AS `posY` ' .
-              'FROM gameobject c',
+              'FROM gameobject c WHERE c.phaseMask != 16384',
               ' - assembling gameobject spawns', Type::OBJECT],
 
         3 => ['SELECT id AS "guid", 19 AS "type", soundId AS typeId, 0 AS respawn, 0 AS phaseMask, 0 AS areaId, mapId AS "map", 0 AS pathId, posX, posY ' .
@@ -34,15 +34,15 @@ SqlGen::register(new class extends SetupScript
               ' - assembling areatrigger spawns', Type::AREATRIGGER],
 
         5 => ['SELECT c.guid, w.entry AS "npcOrPath", w.pointId AS "point", c.zoneId AS areaId, c.map, w.waittime AS "wait", w.location_y AS `posX`, w.location_x AS `posY` ' .
-              'FROM creature c JOIN script_waypoint w ON c.id1 = w.entry',
+              'FROM creature c JOIN script_waypoint w ON c.id1 = w.entry WHERE c.phaseMask != 16384',
               ' - assembling waypoints from table script_waypoint', Type::NPC],
 
         6 => ['SELECT c.guid, w.entry AS "npcOrPath", w.pointId AS "point", c.zoneId AS areaId, c.map, 0 AS "wait", w.position_y AS `posX`, w.position_x AS `posY` ' .
-              'FROM creature c JOIN waypoints w ON c.id1 = w.entry',
+              'FROM creature c JOIN waypoints w ON c.id1 = w.entry WHERE c.phaseMask != 16384',
               ' - assembling waypoints from table waypoints', Type::NPC],
 
         7 => ['SELECT c.guid, -w.id AS "npcOrPath", w.point, c.zoneId AS areaId, c.map, w.delay AS "wait", w.position_y AS `posX`, w.position_x AS `posY` ' .
-              'FROM creature c JOIN creature_addon ca ON ca.guid = c.guid JOIN waypoint_data w ON w.id = ca.path_id WHERE ca.path_id <> 0',
+              'FROM creature c JOIN creature_addon ca ON ca.guid = c.guid JOIN waypoint_data w ON w.id = ca.path_id WHERE ca.path_id <> 0 AND c.phaseMask != 16384',
               ' - assembling waypoints from table waypoint_data', Type::NPC]
     );
 
