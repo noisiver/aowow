@@ -214,7 +214,8 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         return DB::World()->select(
            'SELECT    c.`guid`, ?d AS `type`, c.`id1` AS `typeId`, c.`map`, c.`position_x` AS `posX`, c.`position_y` AS `posY`, c.`spawntimesecs` AS `respawn`, c.`spawnMask`, c.`phaseMask`, c.`zoneId` AS `areaId`, IFNULL(ca.`path_id`, 0) AS `pathId`
             FROM      creature c
-            LEFT JOIN creature_addon ca ON ca.guid = c.guid',
+            LEFT JOIN creature_addon ca ON ca.guid = c.guid
+            WHERE c.`phaseMask` != 16384',
             Type::NPC
         );
     }
@@ -224,7 +225,8 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         // [guid, type, typeId, map, posX, posY [, respawn, spawnMask, phaseMask, areaId, floor, pathId]]
         return DB::World()->select(
            'SELECT `guid`, ?d AS `type`, `id` AS `typeId`, `map`, `position_x` AS `posX`, `position_y` AS `posY`, `spawntimesecs` AS `respawn`, `spawnMask`, `phaseMask`, `zoneId` AS `areaId`
-            FROM   gameobject',
+            FROM   gameobject
+            WHERE `phaseMask` != 16384',
             Type::OBJECT
         );
     }
@@ -278,15 +280,15 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         return DB::World()->select(
            'SELECT  c.`guid`, w.`entry` AS `creatureOrPath`, w.`pointId` AS `point`, c.`zoneId` AS `areaId`, c.`map`, w.`waittime` AS `wait`, w.`location_x` AS `posX`, w.`location_y` AS `posY`
               FROM  creature c
-              JOIN  script_waypoint w ON c.`id1` = w.`entry` UNION
+              JOIN  script_waypoint w ON c.`id1` = w.`entry` WHERE c.phaseMask != 16384 UNION
             SELECT  c.`guid`, w.`entry` AS `creatureOrPath`, w.`pointId` AS `point`, c.`zoneId` AS `areaId`, c.`map`,            0 AS `wait`, w.`position_x` AS `posX`, w.`position_y` AS `posY`
               FROM  creature c
-              JOIN  waypoints w ON c.`id1` = w.`entry` UNION
+              JOIN  waypoints w ON c.`id1` = w.`entry` WHERE c.phaseMask != 16384 UNION
             SELECT  c.`guid`,   -w.`id` AS `creatureOrPath`,              w.`point`, c.`zoneId` AS `areaId`, c.`map`,    w.`delay` AS `wait`, w.`position_x` AS `posX`, w.`position_y` AS `posY`
               FROM  creature c
               JOIN  creature_addon ca ON ca.`guid` = c.`guid`
               JOIN  waypoint_data w ON w.`id` = ca.`path_id`
-              WHERE ca.`path_id` <> 0'
+              WHERE ca.`path_id` <> 0 AND c.phaseMask != 16384'
         );
     }
 
