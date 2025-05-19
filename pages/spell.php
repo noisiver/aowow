@@ -1094,20 +1094,13 @@ class SpellPage extends GenericPage
         // tab: taught by npc
         if ($this->subject->getSources($s) && in_array(SRC_TRAINER, $s))
         {
-            $src  = $this->subject->sources[$this->typeId][6];
-            $list = [];
-            if (count($src) == 1 && $src[0] == 1)           // multiple trainer
-            {
-                $list = DB::World()->selectCol('
-                    SELECT    IF(t1.ID > 200000, t2.ID, t1.ID)
-                    FROM      npc_trainer t1
-                    LEFT JOIN npc_trainer t2 ON t2.SpellID = -t1.ID
-                    WHERE     t1.SpellID = ?d',
-                    $this->typeId
-                );
-            }
-            else if ($src)
-                $list = array_values($src);
+            $trainers = DB::World()->select('
+                SELECT    IF(t1.ID > 200000, t2.ID, t1.ID) AS ARRAY_KEY, t1.ReqLevel AS reqLevel, t1.ReqSkillLine AS reqSkillId, t1.ReqSpell AS reqSpellId
+                FROM      npc_trainer t1
+                LEFT JOIN npc_trainer t2 ON t2.SpellID = -t1.ID
+                WHERE     t1.SpellID = ?d',
+                $this->typeId
+            );
 
             if ($trainers)
             {
