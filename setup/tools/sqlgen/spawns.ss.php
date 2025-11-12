@@ -214,8 +214,10 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         return DB::World()->select(
            'SELECT    c.`guid`, ?d AS `type`, c.`id1` AS `typeId`, c.`map`, c.`position_x` AS `posX`, c.`position_y` AS `posY`, c.`spawntimesecs` AS `respawn`, c.`spawnMask`, c.`phaseMask`, c.`zoneId` AS `areaId`, IFNULL(ca.`path_id`, 0) AS `pathId`
             FROM      creature c
-            LEFT JOIN creature_addon ca ON ca.guid = c.guid',
-            Type::NPC
+            LEFT JOIN creature_addon ca ON ca.guid = c.guid
+            WHERE ?d BETWEEN c.MinPatch AND c.MaxPatch',
+            Type::NPC,
+            PROGRESSION_PATCH
         );
     }
 
@@ -224,8 +226,10 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         // [guid, type, typeId, map, posX, posY [, respawn, spawnMask, phaseMask, areaId, floor, pathId]]
         return DB::World()->select(
            'SELECT `guid`, ?d AS `type`, `id` AS `typeId`, `map`, `position_x` AS `posX`, `position_y` AS `posY`, `spawntimesecs` AS `respawn`, `spawnMask`, `phaseMask`, `zoneId` AS `areaId`
-            FROM   gameobject',
-            Type::OBJECT
+            FROM   gameobject
+            WHERE ?d BETWEEN MinPatch AND MaxPatch',
+            Type::OBJECT,
+            PROGRESSION_PATCH
         );
     }
 

@@ -357,8 +357,8 @@ define('PROFILER_CU_NEEDS_RESYNC',          0x10);
 define('GUIDE_CU_NO_QUICKFACTS',            0x100);         // merge with CC_FLAG_*
 define('GUIDE_CU_NO_RATING',                0x200);
 
-define('MAX_LEVEL',                         80);
-define('MAX_SKILL',                         450);
+define('MAX_LEVEL',                         60);
+define('MAX_SKILL',                         300);
 define('WOW_BUILD',                         12340);
 
 // Loot handles
@@ -2099,5 +2099,7 @@ define('EMOTE_FLAG_END_MOVEMENT',        0x1000);           // Movement ends
 define('EMOTE_FLAG_INTERRUPT_ON_ATTACK', 0x2000);           // Interrupt on attack
 define('EMOTE_FLAG_ONLY_STILL',          0x4000);           // Only while still
 define('EMOTE_FLAG_NOT_FLYING',          0x8000);           // Not while flying
+
+define('PROGRESSION_PATCH', 0);
 
 ?>

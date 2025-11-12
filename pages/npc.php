@@ -579,11 +579,12 @@ class NpcPage extends GenericPage
                           IFNULL(t2.ReqLevel, t1.ReqLevel) AS reqLevel,
                           IFNULL(t2.ReqSpell, t1.ReqSpell) AS reqSpellId
                 FROM      npc_trainer t1
-                LEFT JOIN npc_trainer t2 ON t2.ID = IF(t1.SpellID < 0, -t1.SpellID, null)
+                LEFT JOIN npc_trainer t2 ON t2.ID = IF(t1.SpellID < 0, -t1.SpellID, null) AND ?d BETWEEN t2.MinPatch AND t2.MaxPatch
                 WHERE     t1.ID = ?d
+                AND ?d BETWEEN t1.MinPatch AND t1.MaxPatch
             ';
 
-            if ($tSpells = DB::World()->select($teachQuery, $this->typeId))
+            if ($tSpells = DB::World()->select($teachQuery, PROGRESSION_PATCH, $this->typeId, PROGRESSION_PATCH))
             {
                 $teaches = new SpellList(array(['id', array_keys($tSpells)]));
                 if (!$teaches->error)
@@ -919,10 +920,10 @@ class NpcPage extends GenericPage
     {
         $rows  = DB::World()->select(
            'SELECT `creature_id` AS "npc", `RewOnKillRepFaction1` AS "faction", `RewOnKillRepValue1` AS "qty", `MaxStanding1` AS "maxRank", `isTeamAward1` AS "spillover"
-            FROM   creature_onkill_reputation WHERE `creature_id` IN (?a) AND `RewOnKillRepFaction1` > 0 UNION
+            FROM   creature_onkill_reputation WHERE `creature_id` IN (?a) AND `RewOnKillRepFaction1` > 0 AND ?d BETWEEN MinPatch AND MaxPatch UNION
             SELECT `creature_id` AS "npc", `RewOnKillRepFaction2` AS "faction", `RewOnKillRepValue2` AS "qty", `MaxStanding2` AS "maxRank", `isTeamAward2` AS "spillover"
-            FROM   creature_onkill_reputation WHERE `creature_id` IN (?a) AND `RewOnKillRepFaction2` > 0',
-            $entries, $entries
+            FROM   creature_onkill_reputation WHERE `creature_id` IN (?a) AND `RewOnKillRepFaction2` > 0 AND ?d BETWEEN MinPatch AND MaxPatch',
+            $entries, PROGRESSION_PATCH, $entries, PROGRESSION_PATCH
         );
 
         $factions = new FactionList(array(['id', array_column($rows, 'faction')]));

@@ -60,13 +60,14 @@ CLISetup::registerSetup("sql", new class extends SetupScript
             LEFT JOIN gameobject_template_locale gtl6 ON go.entry = gtl6.entry AND gtl6.`locale` = "esES"
             LEFT JOIN gameobject_template_locale gtl8 ON go.entry = gtl8.entry AND gtl8.`locale` = "ruRU"
             LEFT JOIN gameobject_questitem gqi ON gqi.GameObjectEntry = go.entry
-           { WHERE     go.entry IN (?a) }
+            WHERE go.Patch = (SELECT MAX(Patch) FROM gameobject_template go2 WHERE go2.entry = go.entry AND Patch <= ?d)
+           { AND     go.entry IN (?a) }
             GROUP BY  go.entry
             LIMIT     ?d, ?d';
 
         $i = 0;
         DB::Aowow()->query('TRUNCATE ?_objects');
-        while ($objects = DB::World()->select($baseQuery, $ids ?: DBSIMPLE_SKIP, CLISetup::SQL_BATCH * $i, CLISetup::SQL_BATCH))
+        while ($objects = DB::World()->select($baseQuery, PROGRESSION_PATCH, $ids ?: DBSIMPLE_SKIP, CLISetup::SQL_BATCH * $i, CLISetup::SQL_BATCH))
         {
             CLI::write(' * batch #' . ++$i . ' (' . count($objects) . ')', CLI::LOG_BLANK, true, true);
 

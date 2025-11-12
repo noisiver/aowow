@@ -124,12 +124,13 @@ CLISetup::registerSetup("sql", new class extends SetupScript
             LEFT JOIN item_template_locale itl8 ON it.entry = itl8.ID AND itl8.locale = "ruRU"
             LEFT JOIN spell_group sg ON sg.spell_id = it.spellid_1 AND it.class = 0 AND it.subclass = 2 AND sg.id IN (1, 2)
             LEFT JOIN game_event ge ON ge.holiday = it.HolidayId AND it.HolidayId > 0
-          { WHERE     it.entry IN (?a) }
+            WHERE it.Patch = (SELECT MAX(Patch) FROM item_template it2 WHERE it2.entry = it.entry AND Patch <= ?d)
+          { and     it.entry IN (?a) }
             LIMIT     ?d, ?d';
 
         $i = 0;
         DB::Aowow()->query('TRUNCATE ?_items');
-        while ($items = DB::World()->select($baseQuery, $ids ?: DBSIMPLE_SKIP, CLISetup::SQL_BATCH * $i, CLISetup::SQL_BATCH))
+        while ($items = DB::World()->select($baseQuery, PROGRESSION_PATCH, $ids ?: DBSIMPLE_SKIP, CLISetup::SQL_BATCH * $i, CLISetup::SQL_BATCH))
         {
             CLI::write(' * batch #' . ++$i . ' (' . count($items) . ')', CLI::LOG_BLANK, true, true);
 

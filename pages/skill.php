@@ -251,7 +251,7 @@ class SkillPage extends GenericPage
         {
             $list = [];
             if (!empty(Game::$trainerTemplates[Type::SKILL][$this->typeId]))
-                $list = DB::World()->selectCol('SELECT DISTINCT ID FROM npc_trainer WHERE SpellID IN (?a) AND ID < 200000', Game::$trainerTemplates[Type::SKILL][$this->typeId]);
+                $list = DB::World()->selectCol('SELECT DISTINCT ID FROM npc_trainer WHERE SpellID IN (?a) AND ID < 200000 AND ?d BETWEEN MinPatch AND MaxPatch', Game::$trainerTemplates[Type::SKILL][$this->typeId], PROGRESSION_PATCH);
             else
             {
                 $mask = 0;
@@ -269,9 +269,9 @@ class SkillPage extends GenericPage
                 $list = $spellIds ? DB::World()->selectCol('
                     SELECT    IF(t1.ID > 200000, t2.ID, t1.ID)
                     FROM      npc_trainer t1
-                    LEFT JOIN npc_trainer t2 ON t2.SpellID = -t1.ID
-                    WHERE     t1.SpellID IN (?a)',
-                    $spellIds
+                    LEFT JOIN npc_trainer t2 ON t2.SpellID = -t1.ID AND ?d BETWEEN t2.MinPatch AND t2.MaxPatch
+                    WHERE     t1.SpellID IN (?a) AND ?d BETWEEN t1.MinPatch AND t1.MaxPatch',
+                    PROGRESSION_PATCH, $spellIds, PROGRESSION_PATCH
                 ) : [];
             }
 

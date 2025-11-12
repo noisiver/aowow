@@ -43,7 +43,9 @@ CLISetup::registerSetup("sql", new class extends SetupScript
            'SELECT    rlt.Entry AS ARRAY_KEY, IF(Reference, -Reference, Item) AS ARRAY_KEY2, it.entry, it.class, it.subclass, it.spellid_1, it.spelltrigger_1, it.spellid_2, it.spelltrigger_2
             FROM      reference_loot_template rlt
             LEFT JOIN item_template it ON rlt.Reference = 0 AND rlt.Item = it.entry
-            GROUP BY  ARRAY_KEY, ARRAY_KEY2'
+            WHERE ?d BETWEEN MinPatch AND MaxPatch
+            GROUP BY  ARRAY_KEY, ARRAY_KEY2',
+            PROGRESSION_PATCH
         );
 
         $hasChanged = true;
@@ -261,8 +263,8 @@ CLISetup::registerSetup("sql", new class extends SetupScript
             FROM      creature_loot_template clt
             JOIN      creature_template ct ON clt.`entry` = ct.`lootid`
             LEFT JOIN item_template it ON it.`entry` = clt.`Item` AND clt.`Reference` <= 0
-            WHERE     ct.`lootid` > 0
-            GROUP BY  `refOrItem`, ct.`entry`'
+            WHERE     ct.`lootid` > 0 AND ?d BETWEEN MinPatch AND MaxPatch
+            GROUP BY  `refOrItem`, ct.`entry`', PROGRESSION_PATCH
         );
 
         $spawns = DB::Aowow()->select('SELECT `typeId` AS ARRAY_KEY, IF(COUNT(DISTINCT s.`areaId`) > 1, 0, s.`areaId`) AS `areaId`, z.`type` FROM ?_spawns s JOIN ?_zones z ON z.`id` = s.`areaId` WHERE s.`type` = ?d AND `typeId`IN (?a) GROUP BY `typeId`', Type::NPC, array_filter(array_column($creatureLoot, 'entry')));
@@ -326,10 +328,11 @@ CLISetup::registerSetup("sql", new class extends SetupScript
             FROM      gameobject_loot_template glt
             JOIN      gameobject_template gt ON glt.`entry` = gt.`data1`
             LEFT JOIN item_template it ON it.`entry` = glt.`Item` AND glt.`Reference` <= 0
-            WHERE     `type` = ?d AND gt.`data1` > 0 AND gt.`data0` NOT IN (?a)
+            WHERE     `type` = ?d AND gt.`data1` > 0 AND gt.`data0` NOT IN (?a) AND ?d BETWEEN MinPatch AND MaxPatch
             GROUP BY  `refOrItem`, gt.`entry`',
             OBJECT_CHEST,
-            DB::Aowow()->selectCol('SELECT `id` FROM dbc_lock WHERE `properties1` IN (?a)', [LOCK_PROPERTY_HERBALISM, LOCK_PROPERTY_MINING])
+            DB::Aowow()->selectCol('SELECT `id` FROM dbc_lock WHERE `properties1` IN (?a)', [LOCK_PROPERTY_HERBALISM, LOCK_PROPERTY_MINING]),
+            PROGRESSION_PATCH
         );
 
         $spawns = DB::Aowow()->selectCol('SELECT `typeId` AS ARRAY_KEY, IF(COUNT(DISTINCT `areaId`) > 1, 0, `areaId`) FROM ?_spawns WHERE `type` = ?d AND `typeId`IN (?a) GROUP BY `typeId`', Type::OBJECT, array_column($objectLoot, 'entry'));
@@ -369,9 +372,10 @@ CLISetup::registerSetup("sql", new class extends SetupScript
             FROM      item_loot_template ilt
             JOIN      item_template itA ON ilt.`entry` = itA.`entry`
             LEFT JOIN item_template itB ON itB.`entry` = ilt.`Item` AND ilt.`Reference` <= 0
-            WHERE     itA.`flags` & ?d
+            WHERE     itA.`flags` & ?d AND ?d BETWEEN MinPatch AND MaxPatch
             GROUP BY  ARRAY_KEY',
-            ITEM_FLAG_OPENABLE
+            ITEM_FLAG_OPENABLE,
+            PROGRESSION_PATCH
         );
 
         foreach ($itemLoot as $roi => $l)
@@ -412,14 +416,14 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         );
         $vendorQuery =
            'SELECT   n.`item`, SUM(n.`qty`) AS `qty`, it.`class`, it.`subclass`, it.`spellid_1`, it.`spelltrigger_1`, it.`spellid_2`, it.`spelltrigger_2`
-            FROM     (SELECT `item`, COUNT(1) AS `qty` FROM npc_vendor                                                           WHERE `ExtendedCost` IN (?a) GROUP BY `item` UNION
-                      SELECT `item`, COUNT(1) AS `qty` FROM game_event_npc_vendor genv JOIN creature c ON c.`guid` = genv.`guid` WHERE `ExtendedCost` IN (?a) GROUP BY `item`) n
+            FROM     (SELECT `item`, COUNT(1) AS `qty` FROM npc_vendor                                                           WHERE `ExtendedCost` IN (?a) AND ?d BETWEEN MinPatch AND MaxPatch GROUP BY `item` UNION
+                      SELECT `item`, COUNT(1) AS `qty` FROM game_event_npc_vendor genv JOIN creature c ON c.`guid` = genv.`guid` WHERE `ExtendedCost` IN (?a) AND ?d BETWEEN MinPatch AND MaxPatch GROUP BY `item`) n
             JOIN     item_template it ON it.`entry` = n.`item`
             GROUP BY `item`';
 
         foreach ($subSrcByXCost as $subSrc => $xCost)
         {
-            foreach (DB::World()->select($vendorQuery, $xCost, $xCost) as $v)
+            foreach (DB::World()->select($vendorQuery, $xCost, PROGRESSION_PATCH, $xCost, PROGRESSION_PATCH) as $v)
             {
                 if ($_ = $this->taughtSpell($v))
                     $this->pushBuffer(Type::SPELL, $_, SRC_PVP, $subSrc);
@@ -520,11 +524,11 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         $xCostIds = DB::Aowow()->selectCol('SELECT `id` FROM dbc_itemextendedcost WHERE `reqHonorPoints` <> 0 OR `reqArenaPoints` <> 0 OR `reqItemId1` IN (?a) OR `reqItemId2` IN (?a) OR `reqItemId3` IN (?a) OR `reqItemId4` IN (?a) OR `reqItemId5` IN (?a)', self::PVP_MONEY, self::PVP_MONEY, self::PVP_MONEY, self::PVP_MONEY, self::PVP_MONEY);
         $vendors  = DB::World()->select(
            'SELECT   n.`item`, n.`npc`, SUM(n.`qty`) AS `qty`, it.`class`, it.`subclass`, it.`spellid_1`, it.`spelltrigger_1`, it.`spellid_2`, it.`spelltrigger_2`
-            FROM     (SELECT `item`, `entry` AS `npc`, COUNT(1) AS `qty` FROM npc_vendor                                                           WHERE `ExtendedCost` NOT IN (?a) GROUP BY `item`, `npc` UNION
-                      SELECT `item`,  c.`id1` AS `npc`, COUNT(1) AS `qty` FROM game_event_npc_vendor genv JOIN creature c ON c.`guid` = genv.`guid` WHERE `ExtendedCost` NOT IN (?a) GROUP BY `item`, `npc`) n
+            FROM     (SELECT `item`, `entry` AS `npc`, COUNT(1) AS `qty` FROM npc_vendor                                                           WHERE `ExtendedCost` NOT IN (?a) AND ?d BETWEEN MinPatch AND MaxPatch GROUP BY `item`, `npc` UNION
+                      SELECT `item`,  c.`id1` AS `npc`, COUNT(1) AS `qty` FROM game_event_npc_vendor genv JOIN creature c ON c.`guid` = genv.`guid` WHERE `ExtendedCost` NOT IN (?a) AND ?d BETWEEN MinPatch AND MaxPatch GROUP BY `item`, `npc`) n
             JOIN     item_template it ON it.`entry` = n.`item`
             GROUP BY `item`, `npc`',
-            $xCostIds, $xCostIds
+            $xCostIds, PROGRESSION_PATCH, $xCostIds, PROGRESSION_PATCH
         );
 
         $spawns = DB::Aowow()->selectCol('SELECT `typeId` AS ARRAY_KEY, IF(COUNT(DISTINCT `areaId`) > 1, 0, `areaId`) FROM ?_spawns WHERE `type` = ?d AND `typeId`IN (?a) GROUP BY `typeId`', Type::NPC, array_column($vendors, 'npc'));
@@ -571,7 +575,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
             CLI::write('[source] itemAchievement() - Reward items are unexpectedly empty.', CLI::LOG_WARN);
         else
         {
-            $extraItems = DB::World()->select('SELECT `entry` AS ARRAY_KEY, `class`, `subclass`, `spellid_1`, `spelltrigger_1`, `spellid_2`, `spelltrigger_2` FROM item_template WHERE `entry` IN (?a)', array_keys($xItems));
+            $extraItems = DB::World()->select('SELECT `entry` AS ARRAY_KEY, `class`, `subclass`, `spellid_1`, `spelltrigger_1`, `spellid_2`, `spelltrigger_2` FROM item_template it WHERE `entry` IN (?a) AND Patch = (SELECT MAX(Patch) FROM item_template it2 WHERE it2.entry = it.entry AND Patch <= ?d)', array_keys($xItems), PROGRESSION_PATCH);
             foreach ($extraItems as $iId => $l)
             {
                 if ($_ = $this->taughtSpell($l))

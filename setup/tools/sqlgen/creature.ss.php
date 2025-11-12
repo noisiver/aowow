@@ -100,16 +100,17 @@ CLISetup::registerSetup("sql", new class extends SetupScript
             LEFT JOIN creature_template_resistance ctr5 ON ct.entry = ctr5.CreatureID AND ctr5.School = 5
             LEFT JOIN creature_template_resistance ctr6 ON ct.entry = ctr6.CreatureID AND ctr6.School = 6
             -- AC
-            LEFT JOIN creature_template_model ctm1 ON ct.entry = ctm1.CreatureID AND ctm1.Idx = 0
-            LEFT JOIN creature_template_model ctm2 ON ct.entry = ctm2.CreatureID AND ctm2.Idx = 1
-            LEFT JOIN creature_template_model ctm3 ON ct.entry = ctm3.CreatureID AND ctm3.Idx = 2
-            LEFT JOIN creature_template_model ctm4 ON ct.entry = ctm4.CreatureID AND ctm4.Idx = 3
-           { WHERE     ct.entry IN (?a) }
+            LEFT JOIN creature_template_model ctm1 ON ct.entry = ctm1.CreatureID AND ctm1.Idx = 0 AND ctm1.Patch = (SELECT MAX(Patch) FROM creature_template_model ctm12 WHERE ctm12.CreatureID = ctm1.CreatureID AND Patch <= ?d)
+            LEFT JOIN creature_template_model ctm2 ON ct.entry = ctm2.CreatureID AND ctm2.Idx = 1 AND ctm2.Patch = (SELECT MAX(Patch) FROM creature_template_model ctm22 WHERE ctm22.CreatureID = ctm2.CreatureID AND Patch <= ?d)
+            LEFT JOIN creature_template_model ctm3 ON ct.entry = ctm3.CreatureID AND ctm3.Idx = 2 AND ctm3.Patch = (SELECT MAX(Patch) FROM creature_template_model ctm32 WHERE ctm32.CreatureID = ctm3.CreatureID AND Patch <= ?d)
+            LEFT JOIN creature_template_model ctm4 ON ct.entry = ctm4.CreatureID AND ctm4.Idx = 3 AND ctm4.Patch = (SELECT MAX(Patch) FROM creature_template_model ctm42 WHERE ctm42.CreatureID = ctm4.CreatureID AND Patch <= ?d)
+            WHERE ct.Patch = (SELECT MAX(Patch) FROM creature_template ct2 WHERE ct2.entry = ct.entry AND Patch <= ?d)
+           { AND     ct.entry IN (?a) }
             LIMIT     ?d, ?d';
 
         $i = 0;
         DB::Aowow()->query('TRUNCATE ?_creature');
-        while ($npcs = DB::World()->select($baseQuery, NPC_CU_INSTANCE_BOSS, $ids ?: DBSIMPLE_SKIP, CLISetup::SQL_BATCH * $i, CLISetup::SQL_BATCH))
+        while ($npcs = DB::World()->select($baseQuery, NPC_CU_INSTANCE_BOSS, PROGRESSION_PATCH, PROGRESSION_PATCH, PROGRESSION_PATCH, PROGRESSION_PATCH, PROGRESSION_PATCH, $ids ?: DBSIMPLE_SKIP, CLISetup::SQL_BATCH * $i, CLISetup::SQL_BATCH))
         {
             CLI::write(' * batch #' . ++$i . ' (' . count($npcs) . ')', CLI::LOG_BLANK, true, true);
 

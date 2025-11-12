@@ -18,13 +18,13 @@ CLISetup::registerSetup("sql", new class extends SetupScript
     public function generate(array $ids = []) : bool
     {
         $query['NPC'] =
-           'SELECT 1 AS `type`, `id` AS `typeId`, `quest` AS `questId`, 1 AS `method`, 0            AS `eventId` FROM creature_queststarter UNION
-            SELECT 1 AS `type`, `id` AS `typeId`, `quest` AS `questId`, 2 AS `method`, 0            AS `eventId` FROM creature_questender   UNION
+           'SELECT 1 AS `type`, `id` AS `typeId`, `quest` AS `questId`, 1 AS `method`, 0            AS `eventId` FROM creature_queststarter WHERE ?d BETWEEN MinPatch AND MaxPatch UNION
+            SELECT 1 AS `type`, `id` AS `typeId`, `quest` AS `questId`, 2 AS `method`, 0            AS `eventId` FROM creature_questender WHERE ?d BETWEEN MinPatch AND MaxPatch UNION
             SELECT 1 AS `type`, `id` AS `typeId`, `quest` AS `questId`, 1 AS `method`, `eventEntry` AS `eventId` FROM game_event_creature_quest';
 
         $query['Object'] =
-           'SELECT 2 AS `type`, `id` AS `typeId`, `quest` AS `questId`, 1 AS `method`, 0            AS `eventId` FROM gameobject_queststarter UNION
-            SELECT 2 AS `type`, `id` AS `typeId`, `quest` AS `questId`, 2 AS `method`, 0            AS `eventId` FROM gameobject_questender   UNION
+           'SELECT 2 AS `type`, `id` AS `typeId`, `quest` AS `questId`, 1 AS `method`, 0            AS `eventId` FROM gameobject_queststarter WHERE ?d BETWEEN MinPatch AND MaxPatch UNION
+            SELECT 2 AS `type`, `id` AS `typeId`, `quest` AS `questId`, 2 AS `method`, 0            AS `eventId` FROM gameobject_questender WHERE ?d BETWEEN MinPatch AND MaxPatch UNION
             SELECT 2 AS `type`, `id` AS `typeId`, `quest` AS `questId`, 1 AS `method`, `eventEntry` AS `eventId` FROM game_event_gameobject_quest';
 
         $query['Item'] = 'SELECT 3 AS `type`, `entry` AS `typeId`, `startquest` AS `questId`, 1 AS `method`, 0 AS `eventId` FROM item_template WHERE `startquest` <> 0';
@@ -35,7 +35,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         {
             CLI::write(' - ' . $n . ' start/end-points', CLI::LOG_BLANK, true, true);
 
-            $data = DB::World()->select($q);
+            $data = DB::World()->select($q, PROGRESSION_PATCH, PROGRESSION_PATCH);
             foreach ($data as $d)
                 DB::Aowow()->query('INSERT INTO ?_quests_startend (?#) VALUES (?a) ON DUPLICATE KEY UPDATE `method` = `method` | ?d, `eventId` = IF(`eventId` = 0, ?d, `eventId`)', array_keys($d), array_values($d), $d['method'], $d['eventId']);
         }

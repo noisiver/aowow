@@ -356,7 +356,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
 
         // fill learnedAt, trainingCost from trainer
         // if ($trainer = DB::World()->select('SELECT `spellID` AS ARRAY_KEY, MIN(`ReqSkillRank`) AS `reqSkill`, MIN(`MoneyCost`) AS `cost`, `ReqAbility1` AS `reqSpellId`, COUNT(*) AS `count` FROM trainer_spell GROUP BY `SpellID`'))  // TC
-        if ($trainer = DB::World()->select('SELECT `SpellID` AS ARRAY_KEY, MIN(`ReqSkillRank`) AS `reqSkill`, MIN(`MoneyCost`) AS `cost`, COUNT(*) AS `count` FROM `npc_trainer` GROUP BY `SpellID`')) // AC
+        if ($trainer = DB::World()->select('SELECT `SpellID` AS ARRAY_KEY, MIN(`ReqSkillRank`) AS `reqSkill`, MIN(`MoneyCost`) AS `cost`, COUNT(*) AS `count` FROM `npc_trainer` WHERE ?d BETWEEN MinPatch AND MaxPatch GROUP BY `SpellID`', PROGRESSION_PATCH)) // AC
         {
             $spells = DB::Aowow()->select('SELECT `id` AS ARRAY_KEY, `effect1Id`, `effect2Id`, `effect3Id`, `effect1TriggerSpell`, `effect2TriggerSpell`, `effect3TriggerSpell` FROM dbc_spell WHERE `id` IN (?a)', array_keys($trainer));
             $links  = [];
@@ -523,7 +523,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
             201032 => 10658
         );
         foreach ($specs as $tt => $req)
-            if ($spells = DB::World()->selectCol('SELECT SpellID FROM npc_trainer WHERE ID = ?d', $tt))
+            if ($spells = DB::World()->selectCol('SELECT SpellID FROM npc_trainer WHERE ID = ?d AND ?d BETWEEN MinPatch AND MaxPatch', $tt, PROGRESSION_PATCH))
                 DB::Aowow()->query('UPDATE ?_spell SET reqSpellId = ?d WHERE id IN (?a)', $req, $spells);
         // end AC
 

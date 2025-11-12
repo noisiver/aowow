@@ -417,15 +417,17 @@ class Game
            {LEFT JOIN
                 creature_text_locale ctl ON ct.CreatureID = ctl.CreatureID AND ct.GroupID = ctl.GroupID AND ct.ID = ctl.ID AND ctl.Locale = ?}
             LEFT JOIN
-                broadcast_text bct ON ct.BroadcastTextId = bct.ID
+                broadcast_text bct ON ct.BroadcastTextId = bct.ID AND bct.Patch = (SELECT MAX(Patch) FROM broadcast_text bct2 WHERE bct2.ID = bct2.ID AND Patch <= ?d)
            {LEFT JOIN
                 broadcast_text_locale bctl ON ct.BroadcastTextId = bctl.ID AND bctl.locale = ?}
             WHERE
-                ct.CreatureID = ?d',
+                ct.CreatureID = ?d AND ?d BETWEEN ct.MinPatch AND ct.MaxPatch',
             Lang::getLocale()->value ?: DBSIMPLE_SKIP,
             Lang::getLocale()->value ? Lang::getLocale()->json() : DBSIMPLE_SKIP,
+            PROGRESSION_PATCH,
             Lang::getLocale()->value ? Lang::getLocale()->json() : DBSIMPLE_SKIP,
-            $creatureId
+            $creatureId,
+            PROGRESSION_PATCH
         );
 
         foreach ($quoteSrc as $grp => $text)

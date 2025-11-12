@@ -6,7 +6,7 @@ function TalentCalc() {
         MODE_PET           = 1,
 
         MIN_LEVEL          = 10,
-        MAX_LEVEL          = 80,
+        MAX_LEVEL          = 60,
 
         _versionBuild      = 85,
         _self              = this,
@@ -349,13 +349,13 @@ function TalentCalc() {
         else {
             _mode            = MODE_DEFAULT;
             _nTrees          = 3;
-            _nTiers          = 11;
+            _nTiers          = 7;
             _glyphLevels     = {
                 1 : [15, 30, 80],  // Major
                 2 : [15, 50, 70]   // Minor
             };
             _pointsPerTier   = 5;
-            _basePoints      = 71;
+            _basePoints      = 51;
             _pointsFromBonus = 0;
             _referenceArray  = g_chr_classes;
 

@@ -173,10 +173,12 @@ class CreatureList extends BaseType
         if ($addInfoMask & NPCINFO_REP && $this->getFoundIDs())
         {
             $rewRep = DB::World()->selectCol('
-                SELECT creature_id AS ARRAY_KEY, RewOnKillRepFaction1 AS ARRAY_KEY2, RewOnKillRepValue1 FROM creature_onkill_reputation WHERE creature_id IN (?a) AND RewOnKillRepFaction1 > 0 UNION
-                SELECT creature_id AS ARRAY_KEY, RewOnKillRepFaction2 AS ARRAY_KEY2, RewOnKillRepValue2 FROM creature_onkill_reputation WHERE creature_id IN (?a) AND RewOnKillRepFaction2 > 0',
+                SELECT creature_id AS ARRAY_KEY, RewOnKillRepFaction1 AS ARRAY_KEY2, RewOnKillRepValue1 FROM creature_onkill_reputation WHERE creature_id IN (?a) AND RewOnKillRepFaction1 > 0 AND ?d BETWEEN MinPatch AND MaxPatch UNION
+                SELECT creature_id AS ARRAY_KEY, RewOnKillRepFaction2 AS ARRAY_KEY2, RewOnKillRepValue2 FROM creature_onkill_reputation WHERE creature_id IN (?a) AND RewOnKillRepFaction2 > 0 AND ?d BETWEEN MinPatch AND MaxPatch',
                 $this->getFoundIDs(),
-                $this->getFoundIDs()
+                PROGRESSION_PATCH,
+                $this->getFoundIDs(),
+                PROGRESSION_PATCH
             );
         }
 

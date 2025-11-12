@@ -145,7 +145,7 @@ class Loot
         if (!$tableName || !$lootId)
             return [null, null];
 
-        $rows = DB::World()->select('SELECT * FROM ?# WHERE entry = ?d{ AND groupid = ?d}', $tableName, $lootId, $groupId ?: DBSIMPLE_SKIP);
+        $rows = DB::World()->select('SELECT * FROM ?# WHERE entry = ?d{ AND groupid = ?d} AND ?d BETWEEN MinPatch AND MaxPatch', $tableName, $lootId, $groupId ?: DBSIMPLE_SKIP, PROGRESSION_PATCH);
         if (!$rows)
             return [null, null];
 
