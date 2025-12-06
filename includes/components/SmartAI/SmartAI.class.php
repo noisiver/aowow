@@ -236,8 +236,9 @@ class SmartAI
                       `target_type`, `target_param1`, `target_param2`, `target_param3`, `target_param4`, `target_x`, `target_y`, `target_z`, `target_o`
              FROM     smart_scripts
              WHERE    `entryorguid` = ?d AND `source_type` = ?d
+             AND ?d BETWEEN MinPatch AND MaxPatch
              ORDER BY `id` ASC',
-            $this->entry, $this->srcType);
+            $this->entry, $this->srcType, PROGRESSION_PATCH);
 
         foreach ($raw as $r)
         {
@@ -504,9 +505,9 @@ class SmartAI
         if ($entry < 0)                                     // no lookup by GUID
             return [];
 
-        $actionQuery = 'SELECT `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6` FROM smart_scripts WHERE `source_type` = ?d AND `action_type` IN (?a) AND `entryOrGUID` IN (?a)';
+        $actionQuery = 'SELECT `action_type`, `action_param1`, `action_param2`, `action_param3`, `action_param4`, `action_param5`, `action_param6` FROM smart_scripts WHERE `source_type` = ?d AND `action_type` IN (?a) AND `entryOrGUID` IN (?a) AND ?d BETWEEN MinPatch AND MaxPatch';
 
-        $smartScripts = DB::World()->select($actionQuery, $sourceType, array_merge(array_keys($lookup), SmartAction::ACTION_ALL_TIMED_ACTION_LISTS), [$entry]);
+        $smartScripts = DB::World()->select($actionQuery, $sourceType, array_merge(array_keys($lookup), SmartAction::ACTION_ALL_TIMED_ACTION_LISTS), [$entry], PROGRESSION_PATCH);
         $smartResults = [];
         $smartTALs    = [];
         foreach ($smartScripts as $s)

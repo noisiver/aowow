@@ -349,7 +349,7 @@ function TalentCalc() {
         else {
             _mode            = MODE_DEFAULT;
             _nTrees          = 3;
-            _nTiers          = 7;
+            _nTiers          = 11;
             _glyphLevels     = {
                 1 : [15, 30, 80],  // Major
                 2 : [15, 50, 70]   // Minor

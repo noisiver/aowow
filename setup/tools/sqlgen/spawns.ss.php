@@ -257,8 +257,8 @@ CLISetup::registerSetup("sql", new class extends SetupScript
             FROM   areatrigger_teleport UNION
             SELECT -`entryorguid` AS `guid`, ?d AS `type`, entryorguid AS `typeId`, `action_param1` AS `map`, `target_x`          AS `posX`, `target_y`          AS `posY`
             FROM   smart_scripts
-            WHERE `source_type` = ?d AND `action_type` = ?d',
-            Type::AREATRIGGER, Type::AREATRIGGER, SmartAI::SRC_TYPE_AREATRIGGER, SmartAction::ACTION_TELEPORT
+            WHERE `source_type` = ?d AND `action_type` = ?d AND ?d BETWEEN MinPatch AND MaxPatch',
+            Type::AREATRIGGER, Type::AREATRIGGER, SmartAI::SRC_TYPE_AREATRIGGER, SmartAction::ACTION_TELEPORT, PROGRESSION_PATCH
         );
 
         return array_merge($base, $addData);

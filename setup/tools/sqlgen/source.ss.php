@@ -417,13 +417,13 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         $vendorQuery =
            'SELECT   n.`item`, SUM(n.`qty`) AS `qty`, it.`class`, it.`subclass`, it.`spellid_1`, it.`spelltrigger_1`, it.`spellid_2`, it.`spelltrigger_2`
             FROM     (SELECT `item`, COUNT(1) AS `qty` FROM npc_vendor                                                           WHERE `ExtendedCost` IN (?a) AND ?d BETWEEN MinPatch AND MaxPatch GROUP BY `item` UNION
-                      SELECT `item`, COUNT(1) AS `qty` FROM game_event_npc_vendor genv JOIN creature c ON c.`guid` = genv.`guid` WHERE `ExtendedCost` IN (?a) AND ?d BETWEEN MinPatch AND MaxPatch GROUP BY `item`) n
+                      SELECT `item`, COUNT(1) AS `qty` FROM game_event_npc_vendor genv JOIN creature c ON c.`guid` = genv.`guid` WHERE `ExtendedCost` IN (?a) GROUP BY `item`) n
             JOIN     item_template it ON it.`entry` = n.`item`
             GROUP BY `item`';
 
         foreach ($subSrcByXCost as $subSrc => $xCost)
         {
-            foreach (DB::World()->select($vendorQuery, $xCost, PROGRESSION_PATCH, $xCost, PROGRESSION_PATCH) as $v)
+            foreach (DB::World()->select($vendorQuery, $xCost, PROGRESSION_PATCH, $xCost) as $v)
             {
                 if ($_ = $this->taughtSpell($v))
                     $this->pushBuffer(Type::SPELL, $_, SRC_PVP, $subSrc);
@@ -525,10 +525,10 @@ CLISetup::registerSetup("sql", new class extends SetupScript
         $vendors  = DB::World()->select(
            'SELECT   n.`item`, n.`npc`, SUM(n.`qty`) AS `qty`, it.`class`, it.`subclass`, it.`spellid_1`, it.`spelltrigger_1`, it.`spellid_2`, it.`spelltrigger_2`
             FROM     (SELECT `item`, `entry` AS `npc`, COUNT(1) AS `qty` FROM npc_vendor                                                           WHERE `ExtendedCost` NOT IN (?a) AND ?d BETWEEN MinPatch AND MaxPatch GROUP BY `item`, `npc` UNION
-                      SELECT `item`,  c.`id1` AS `npc`, COUNT(1) AS `qty` FROM game_event_npc_vendor genv JOIN creature c ON c.`guid` = genv.`guid` WHERE `ExtendedCost` NOT IN (?a) AND ?d BETWEEN MinPatch AND MaxPatch GROUP BY `item`, `npc`) n
+                      SELECT `item`,  c.`id1` AS `npc`, COUNT(1) AS `qty` FROM game_event_npc_vendor genv JOIN creature c ON c.`guid` = genv.`guid` WHERE `ExtendedCost` NOT IN (?a) GROUP BY `item`, `npc`) n
             JOIN     item_template it ON it.`entry` = n.`item`
             GROUP BY `item`, `npc`',
-            $xCostIds, PROGRESSION_PATCH, $xCostIds, PROGRESSION_PATCH
+            $xCostIds, PROGRESSION_PATCH, $xCostIds
         );
 
         $spawns = DB::Aowow()->selectCol('SELECT `typeId` AS ARRAY_KEY, IF(COUNT(DISTINCT `areaId`) > 1, 0, `areaId`) FROM ?_spawns WHERE `type` = ?d AND `typeId`IN (?a) GROUP BY `typeId`', Type::NPC, array_column($vendors, 'npc'));

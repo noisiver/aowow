@@ -279,7 +279,7 @@ class SmartEvent
 
                 break;
             case self::EVENT_LINK:                          // 61  -  Used to link together multiple events as a chain of events.
-                if ($links = DB::World()->selectCol('SELECT `id` FROM smart_scripts WHERE `link` = ?d AND `entryorguid` = ?d AND `source_type` = ?d', $this->id, $this->smartAI->entry, $this->smartAI->srcType))
+                if ($links = DB::World()->selectCol('SELECT `id` FROM smart_scripts WHERE `link` = ?d AND `entryorguid` = ?d AND `source_type` = ?d AND ?d BETWEEN MinPatch AND MaxPatch', $this->id, $this->smartAI->entry, $this->smartAI->srcType, PROGRESSION_PATCH))
                     $this->param[10] = LANG::concat($links, false, fn($x) => "#[b]".$x."[/b]");
                 break;
             case self::EVENT_GOSSIP_SELECT:                 // 62  -  On gossip clicked (gossip_menu_option335).
