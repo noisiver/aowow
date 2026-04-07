@@ -1095,10 +1095,10 @@ class SpellPage extends GenericPage
         if ($this->subject->getSources($s) && in_array(SRC_TRAINER, $s))
         {
             $trainers = DB::World()->select('
-                SELECT    IF(t1.ID > 200000, t2.ID, t1.ID) AS ARRAY_KEY, t1.ReqLevel AS reqLevel, t1.ReqSkillLine AS reqSkillId, t1.ReqSpell AS reqSpellId
-                FROM      npc_trainer t1
-                LEFT JOIN npc_trainer t2 ON t2.SpellID = -t1.ID
-                WHERE     t1.SpellID = ?d',
+                SELECT  cdt.CreatureId AS ARRAY_KEY, ts.ReqSkillLine AS reqSkillId, ts.ReqSkillRank AS reqSkillValue, ts.ReqLevel AS reqLevel, ts.ReqAbility1 AS reqSpellId1, ts.reqAbility2 AS reqSpellId2
+                FROM    creature_default_trainer cdt
+                JOIN    trainer_spell ts ON ts.TrainerId = cdt.TrainerId
+                WHERE   ts.SpellId = ?d',
                 $this->typeId
             );
 

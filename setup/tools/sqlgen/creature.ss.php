@@ -14,7 +14,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
     );
 
     protected $dbcSourceFiles  = ['creaturedisplayinfo', 'creaturedisplayinfoextra'];
-    protected $worldDependency = ['creature_template', 'creature_template_locale', 'creature_template_resistance', 'creature_template_spell', 'creature_classlevelstats', 'instance_encounters'];
+    protected $worldDependency = ['creature_template', 'creature_template_locale', 'creature_template_resistance', 'creature_template_spell', 'creature_classlevelstats', 'creature_default_trainer', 'trainer', 'instance_encounters', 'creature_immunities'];
     public function generate(array $ids = []) : bool
     {
         $baseQuery =
@@ -43,19 +43,15 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                       unit_class,
                       unit_flags, unit_flags2, dynamicflags,
                       family,
-                      trainer_type,
-                      trainer_spell,
-                      trainer_class,
-                      trainer_race,
-                      -- IFNULL(t.Type, 0),
-                      -- IFNULL(t.Requirement, 0),
+                      IFNULL(t.Type, 0),
+                      IFNULL(t.Requirement, 0),
                       (CASE ct.exp WHEN 0 THEN min.damage_base WHEN 1 THEN min.damage_exp1 ELSE min.damage_exp2 END) AS dmgMin,
                       (CASE ct.exp WHEN 0 THEN max.damage_base WHEN 1 THEN max.damage_exp1 ELSE max.damage_exp2 END) AS dmgMax,
                       min.attackpower AS mleAtkPwrMin,
                       max.attackpower AS mleAtkPwrMax,
                       min.rangedattackpower AS rmgAtkPwrMin,
                       max.rangedattackpower AS rmgAtkPwrMax,
-                      `type`, -- ct.type,
+                      ct.type,
                       type_flags,
                       lootid, pickpocketloot, skinloot,
                       IFNULL(cts0.Spell, 0), IFNULL(cts1.Spell, 0), IFNULL(cts2.Spell, 0), IFNULL(cts3.Spell, 0), IFNULL(cts4.Spell, 0), IFNULL(cts5.Spell, 0), IFNULL(cts6.Spell, 0), IFNULL(cts7.Spell, 0),
@@ -71,14 +67,14 @@ CLISetup::registerSetup("sql", new class extends SetupScript
                       max.basearmor * ct.ArmorModifier AS armorMax,
                       IFNULL(ctr1.Resistance, 0), IFNULL(ctr2.Resistance, 0), IFNULL(ctr3.Resistance, 0), IFNULL(ctr4.Resistance, 0), IFNULL(ctr5.Resistance, 0), IFNULL(ctr6.Resistance, 0),
                       RacialLeader,
-                      mechanic_immune_mask,
+                      IFNULL(ci.MechanicsMask, 0),
                       flags_extra,
                       ScriptName
             FROM      creature_template ct
             JOIN      creature_classlevelstats min ON ct.unit_class = min.class AND ct.minlevel = min.level
             JOIN      creature_classlevelstats max ON ct.unit_class = max.class AND ct.maxlevel = max.level
-            -- LEFT JOIN creature_default_trainer cdt ON cdt.CreatureId = ct.entry
-            -- LEFT JOIN trainer t ON t.Id = cdt.TrainerId
+            LEFT JOIN creature_default_trainer cdt ON cdt.CreatureId = ct.entry
+            LEFT JOIN trainer t ON t.Id = cdt.TrainerId
             LEFT JOIN creature_template_locale ctl2 ON ct.entry = ctl2.entry AND ctl2.`locale` = "frFR"
             LEFT JOIN creature_template_locale ctl3 ON ct.entry = ctl3.entry AND ctl3.`locale` = "deDE"
             LEFT JOIN creature_template_locale ctl4 ON ct.entry = ctl4.entry AND ctl4.`locale` = "zhCN"
@@ -99,6 +95,7 @@ CLISetup::registerSetup("sql", new class extends SetupScript
             LEFT JOIN creature_template_resistance ctr4 ON ct.entry = ctr4.CreatureID AND ctr4.School = 4
             LEFT JOIN creature_template_resistance ctr5 ON ct.entry = ctr5.CreatureID AND ctr5.School = 5
             LEFT JOIN creature_template_resistance ctr6 ON ct.entry = ctr6.CreatureID AND ctr6.School = 6
+            LEFT JOIN creature_immunities ci ON ct.CreatureImmunitiesId = ci.ID
             -- AC
             LEFT JOIN creature_template_model ctm1 ON ct.entry = ctm1.CreatureID AND ctm1.Idx = 0
             LEFT JOIN creature_template_model ctm2 ON ct.entry = ctm2.CreatureID AND ctm2.Idx = 1
